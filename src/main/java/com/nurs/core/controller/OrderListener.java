@@ -5,7 +5,6 @@ import com.nurs.core.dto.DeleteOrderRequest;
 import com.nurs.core.dto.PaymentRequest;
 import com.nurs.core.dto.UpdateOrderRequest;
 import com.nurs.core.entity.Order;
-import com.nurs.core.service.EmailService;
 import com.nurs.core.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,13 +22,12 @@ public class OrderListener {
 
     private final OrderService orderService;
 
-    private final EmailService emailService;
 
     @RabbitListener(queues = MQConfig.CREATE_ORDER_QUEUE)
     public void orderListener(@NotNull Order order) {
         log.info(order + " - order");
         orderService.createOrder(order);
-        emailService.sendOrderEmail(order.getEmail());
+        orderService.sendOrderEmail(order.getEmail());
 
     }
 
@@ -49,9 +47,9 @@ public class OrderListener {
     public void paymentListener(@NotNull PaymentRequest paymentRequest) {
         log.info(paymentRequest + " - payment");
         orderService.createPayment(paymentRequest);
-        emailService.sendPaymentEmail(paymentRequest.getOrderId());
+        orderService.sendPaymentEmail(paymentRequest.getOrderId());
     }
 
-//
+
 
 }
