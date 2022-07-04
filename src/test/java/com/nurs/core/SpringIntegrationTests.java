@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 @Slf4j
@@ -151,6 +152,25 @@ class SpringIntegrationTests {
 		assertThat(payment.getCreditCardNumber()).isEqualTo(testCard);
 	}
 
+
+	@Test
+	void getOrder() throws InterruptedException {
+		createOrder();
+		Long testOrderId = 6L;
+		AtomicReference<Order> requestOrder = new AtomicReference<>();
+		webClient.get().uri("localhost:9090/order/"+ testOrderId.intValue())
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody(Order.class)
+				.consumeWith(response -> {
+					log.info(response + " - response");
+					requestOrder.set(response.getResponseBody());
+				});
+		TimeUnit.SECONDS.sleep(1);
+		Order order = orderRepository.findById(testOrderId).orElse(null);
+		assert order != null;
+		assertThat(order.getDate()).isEqualTo(requestOrder.get().getDate());
+	}
 
 
 
